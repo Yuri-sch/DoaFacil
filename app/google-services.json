@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "338497213777",
+    "project_id": "doafacil-9f735",
+    "storage_bucket": "doafacil-9f735.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:338497213777:android:db8bcd0244cf88fd51ef70",
+        "android_client_info": {
+          "package_name": "com.example.doafacil"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTxNa8t8VnwAWPOlQbBrUxEkmQ_DDDSgA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
