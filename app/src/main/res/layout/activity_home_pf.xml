@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activities.homePJActivity">
+    tools:context=".activities.HomePFActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        app:title="Painel de Controle"
+        app:title="DoaFácil"
         app:titleTextColor="@android:color/white"
         app:popupTheme="@style/Theme.DoaFacil.PopupOverlay" />
 
@@ -24,45 +24,36 @@
         android:gravity="center_vertical">
 
         <TextView
-            android:id="@+id/tvBoasVindas"
+            android:id="@+id/tvBoasVindasPF"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Olá, Instituição!"
+            android:text="Olá, Doador(a)!"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             android:gravity="center"
             android:layout_marginBottom="32dp"/>
 
         <Button
-            android:id="@+id/btnGerenciarObjetos"
+            android:id="@+id/btnQueroDoar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Gerenciar Objetos para Doação"
+            android:text="Quero Doar"
             android:padding="16dp"
             android:layout_marginBottom="16dp"/>
 
         <Button
-            android:id="@+id/btnGerenciarDados"
+            android:id="@+id/btnInstituicoesProximas"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Gerenciar Dados da Instituição"
-            android:padding="16dp"/>
+            android:text="Instituições mais próximas"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"/>
 
         <Button
-            android:id="@+id/btnGerenciarFotos"
+            android:id="@+id/btnDadosPessoais"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Gerenciar Foto da Instituição"
-            android:padding="16dp"/>
-
-        <Button
-            android:id="@+id/btnGerenciarContatos"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Gerenciar Contatos"
+            android:text="Meus Dados Pessoais"
             android:padding="16dp"/>
 
     </LinearLayout>
-
 </LinearLayout>

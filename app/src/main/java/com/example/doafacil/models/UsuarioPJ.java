@@ -1,28 +1,32 @@
 package com.example.doafacil.models;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class UsuarioPJ {
+
     private String uid;
     private String nome;
     private String cnpj;
     private String descricao;
     private String telefone;
-
     private String estado;
     private String cidade;
     private String rua;
     private String numero;
-
     private double latitude;
     private double longitude;
 
-    // Construtor vazio obrigatório para Firebase
+    // CAMPOS ADICIONADOS
+    private String fotoUrl;
+    private String fotoBase64;
+    private Map<String, String> contatos;
+
     public UsuarioPJ() {
+        // Construtor vazio para o Firebase
     }
 
-    // Construtor completo
-    public UsuarioPJ(String uid, String nome, String cnpj, String descricao, String telefone,
-                     String estado, String cidade, String rua, String numero,
-                     double latitude, double longitude) {
+    public UsuarioPJ(String uid, String nome, String cnpj, String descricao, String telefone, String estado, String cidade, String rua, String numero, double latitude, double longitude) {
         this.uid = uid;
         this.nome = nome;
         this.cnpj = cnpj;
@@ -36,8 +40,7 @@ public class UsuarioPJ {
         this.longitude = longitude;
     }
 
-    // Getters e Setters
-
+    // --- Getters e Setters existentes ---
     public String getUid() { return uid; }
     public void setUid(String uid) { this.uid = uid; }
 
@@ -70,5 +73,34 @@ public class UsuarioPJ {
 
     public double getLongitude() { return longitude; }
     public void setLongitude(double longitude) { this.longitude = longitude; }
+
+    // --- GETTERS E SETTERS NOVOS ---
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
+    }
+
+    public String getFotoBase64() {
+        return fotoBase64;
+    }
+
+    public void setFotoBase64(String fotoBase64) {
+        this.fotoBase64 = fotoBase64;
+    }
+
+    public Map<String, String> getContatos() {
+        if (contatos == null) {
+            contatos = new HashMap<>(); // Evita NullPointerException
+        }
+        return contatos;
+    }
+
+    public void setContatos(Map<String, String> contatos) {
+        this.contatos = contatos;
+    }
 }
+
 

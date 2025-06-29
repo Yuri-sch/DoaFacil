@@ -9,8 +9,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import com.example.doafacil.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -23,76 +23,86 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class SelecionarLocalActivity extends FragmentActivity implements OnMapReadyCallback {
+public class SelecionarLocalActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private LatLng localSelecionado;
-    private Marker marcadorAtual;
-    private FusedLocationProviderClient locationClient;
+    private Button btnConfirmar;
+    private Marker marcador;
+    private FusedLocationProviderClient fusedLocationProviderClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selecionar_local);
 
-        locationClient = LocationServices.getFusedLocationProviderClient(this);
+        btnConfirmar = findViewById(R.id.btnConfirmarLocal);
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
+        mapFragment.getMapAsync(this);
 
-        Button btnConfirmar = findViewById(R.id.btnConfirmarLocal);
         btnConfirmar.setOnClickListener(v -> {
-            if (localSelecionado != null) {
-                Intent result = new Intent();
-                result.putExtra("latitude", localSelecionado.latitude);
-                result.putExtra("longitude", localSelecionado.longitude);
-                setResult(RESULT_OK, result);
+            if (marcador != null) {
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("latitude", marcador.getPosition().latitude);
+                resultIntent.putExtra("longitude", marcador.getPosition().longitude);
+                setResult(RESULT_OK, resultIntent);
                 finish();
             } else {
-                Toast.makeText(this, "Selecione uma localização no mapa", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Selecione um local no mapa.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
+    public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Permissão de localização
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        // Verifica se recebeu uma localização existente da tela anterior
+        if (getIntent().hasExtra("latitude_atual") && getIntent().hasExtra("longitude_atual")) {
+            double lat = getIntent().getDoubleExtra("latitude_atual", 0);
+            double lon = getIntent().getDoubleExtra("longitude_atual", 0);
+            LatLng localizacaoExistente = new LatLng(lat, lon);
+
+            // Move a câmera para o local existente e adiciona um marcador
+            adicionarMarcador(localizacaoExistente);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(localizacaoExistente, 17f));
+        } else {
+            // Se não, busca a localização atual do dispositivo
+            buscarLocalizacaoAtual();
+        }
+
+        mMap.setOnMapClickListener(latLng -> {
+            adicionarMarcador(latLng);
+        });
+    }
+
+    private void buscarLocalizacaoAtual() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Permissão de localização não concedida.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        mMap.setMyLocationEnabled(true);
-
-        // Obter última localização conhecida do dispositivo
-        locationClient.getLastLocation().addOnSuccessListener(location -> {
+        fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
-                LatLng posicaoAtual = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(posicaoAtual, 17f));
+                LatLng atual = new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(atual, 15f));
             } else {
-                // fallback para o Brasil
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-15.78, -47.93), 4f));
+                Toast.makeText(this, "Não foi possível obter a localização atual.", Toast.LENGTH_SHORT).show();
             }
-        });
-
-        // Ao clicar no mapa, adiciona marcador
-        mMap.setOnMapClickListener(latLng -> {
-            localSelecionado = latLng;
-            if (marcadorAtual != null) marcadorAtual.remove();
-            marcadorAtual = mMap.addMarker(new MarkerOptions().position(latLng).title("Local selecionado"));
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            recreate(); // reinicia para aplicar a permissão concedida
+    // Método para adicionar ou mover o marcador
+    private void adicionarMarcador(LatLng latLng) {
+        if (marcador == null) {
+            // Se não existe marcador, cria um novo
+            marcador = mMap.addMarker(new MarkerOptions().position(latLng).title("Local Selecionado"));
+        } else {
+            // Se já existe, apenas move sua posição
+            marcador.setPosition(latLng);
         }
     }
 }

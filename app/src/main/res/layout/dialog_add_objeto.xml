@@ -5,17 +5,39 @@
     android:layout_height="wrap_content"
     android:padding="24dp">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nome do Objeto"
+        android:labelFor="@+id/edtNomeObjeto"/>
     <EditText
         android:id="@+id/edtNomeObjeto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nome do objeto (ex: Arroz, Feijão, Casaco)" />
+        android:layout_marginBottom="16dp"
+        android:hint="Ex: Arroz, Casaco, etc." />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categoria"
+        android:labelFor="@+id/spinnerCategoria"/>
+    <Spinner
+        android:id="@+id/spinnerCategoria"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:padding="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Descrição"
+        android:labelFor="@+id/edtDescricaoObjeto"/>
     <EditText
         android:id="@+id/edtDescricaoObjeto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Descrição (opcional, ex: Tamanho G, 5kg)" />
+        android:hint="Opcional (ex: Tamanho G, 5kg)" />
 
 </LinearLayout>

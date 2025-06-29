@@ -36,9 +36,10 @@ public class ObjetosDoacaoAdapter extends RecyclerView.Adapter<ObjetosDoacaoAdap
 
     @Override
     public void onBindViewHolder(@NonNull ObjetoViewHolder holder, int position) {
-        ObjetoDoacao objeto = objetoList.get(position); // MUDANÇA AQUI
+        ObjetoDoacao objeto = objetoList.get(position);
         holder.tvNomeObjeto.setText(objeto.getNome());
         holder.tvDescricaoObjeto.setText(objeto.getDescricao());
+        holder.tvCategoriaObjeto.setText(objeto.getCategoria()); // NOVO
 
         holder.btnEditar.setOnClickListener(v -> listener.onEditClick(objeto));
         holder.btnExcluir.setOnClickListener(v -> listener.onDeleteClick(objeto));
@@ -50,13 +51,14 @@ public class ObjetosDoacaoAdapter extends RecyclerView.Adapter<ObjetosDoacaoAdap
     }
 
     static class ObjetoViewHolder extends RecyclerView.ViewHolder {
-        TextView tvNomeObjeto, tvDescricaoObjeto; // MUDANÇA AQUI
+        TextView tvNomeObjeto, tvDescricaoObjeto, tvCategoriaObjeto; // Adicionado tvCategoriaObjeto
         Button btnEditar, btnExcluir;
 
         public ObjetoViewHolder(@NonNull View itemView) {
             super(itemView);
             tvNomeObjeto = itemView.findViewById(R.id.tvNomeObjeto);
             tvDescricaoObjeto = itemView.findViewById(R.id.tvDescricaoObjeto);
+            tvCategoriaObjeto = itemView.findViewById(R.id.tvCategoriaObjeto); // NOVO
             btnEditar = itemView.findViewById(R.id.btnEditar);
             btnExcluir = itemView.findViewById(R.id.btnExcluir);
         }
