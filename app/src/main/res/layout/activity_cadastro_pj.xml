@@ -1,49 +1,57 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 
     <LinearLayout
-        android:id="@+id/rootLayout"
         android:orientation="vertical"
         android:padding="24dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Etapa 1: Nome + CNPJ -->
+        <!-- STEP 1: Nome, Telefone, CNPJ -->
         <LinearLayout
             android:id="@+id/step1"
             android:orientation="vertical"
-            android:visibility="visible"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <EditText
                 android:id="@+id/edtNome"
-                android:hint="Nome da instituição"
+                android:hint="Nome da Instituição"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/edtTelefone"
+                android:hint="Telefone"
+                android:inputType="phone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
 
             <EditText
                 android:id="@+id/edtCnpj"
                 android:hint="CNPJ"
                 android:inputType="number"
-                android:layout_marginTop="12dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
 
             <Button
                 android:id="@+id/btnProximo1"
                 android:text="Próximo"
-                android:layout_width="match_parent"
                 android:layout_marginTop="24dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- Etapa 2: Descrição + Telefone + Cidade -->
+        <!-- STEP 2: Descrição -->
         <LinearLayout
             android:id="@+id/step2"
-            android:orientation="vertical"
             android:visibility="gone"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -53,56 +61,89 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <Button
+                android:id="@+id/btnVoltar1"
+                android:text="Voltar"
+                android:layout_marginTop="24dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btnProximo2"
+                android:text="Próximo"
+                android:layout_marginTop="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- STEP 3: Endereço + Mapa -->
+        <LinearLayout
+            android:id="@+id/step3"
+            android:visibility="gone"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
             <EditText
-                android:id="@+id/edtTelefone"
-                android:hint="Telefone de contato"
-                android:inputType="phone"
-                android:layout_marginTop="12dp"
+                android:id="@+id/edtEstado"
+                android:hint="Estado"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
             <EditText
                 android:id="@+id/edtCidade"
                 android:hint="Cidade"
-                android:layout_marginTop="12dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
 
-            <Button
-                android:id="@+id/btnSelecionarLocal"
-                android:text="Selecionar localização no mapa"
+            <EditText
+                android:id="@+id/edtRua"
+                android:hint="Rua"
                 android:layout_width="match_parent"
-                android:layout_marginTop="16dp"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/edtNumero"
+                android:hint="Número"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
 
             <TextView
-                android:id="@+id/txtLocalSelecionado"
-                android:text="Nenhum local selecionado"
-                android:textColor="@android:color/darker_gray"
+                android:text="Selecione a localização no mapa:"
+                android:layout_marginTop="12dp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"/>
+                android:layout_height="wrap_content" />
+
+            <fragment
+                android:id="@+id/mapFragment"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="8dp" />
 
             <Button
-                android:id="@+id/btnVoltar1"
+                android:id="@+id/btnVoltar2"
                 android:text="Voltar"
-                android:layout_width="match_parent"
                 android:layout_marginTop="24dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
             <Button
-                android:id="@+id/btnProximo2"
+                android:id="@+id/btnProximo3"
                 android:text="Próximo"
-                android:layout_width="match_parent"
                 android:layout_marginTop="8dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- Etapa 3: Email + Senha -->
+        <!-- STEP 4: Email + Senha -->
         <LinearLayout
-            android:id="@+id/step3"
-            android:orientation="vertical"
+            android:id="@+id/step4"
             android:visibility="gone"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -122,19 +163,21 @@
                 android:layout_height="wrap_content" />
 
             <Button
-                android:id="@+id/btnVoltar2"
+                android:id="@+id/btnVoltar3"
                 android:text="Voltar"
-                android:layout_width="match_parent"
                 android:layout_marginTop="24dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
             <Button
                 android:id="@+id/btnCadastrar"
                 android:text="Cadastrar"
-                android:layout_width="match_parent"
                 android:layout_marginTop="8dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
+
     </LinearLayout>
 </ScrollView>
+
 
