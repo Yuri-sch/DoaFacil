@@ -29,6 +29,7 @@
         <activity android:name=".activities.CadastroPFActivity" />
         <activity android:name=".activities.CadastroPJActivity" />
         <activity android:name=".activities.SelecionarLocalActivity" />
+        <activity android:name=".activities.homePJActvity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

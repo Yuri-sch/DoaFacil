@@ -77,9 +77,9 @@ public class LoginActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         Toast.makeText(this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show();
 
-                        // Redireciona para a tela principal (ainda será implementada)
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                        finish(); // Fecha a tela de login
+                        Intent intent = new Intent(LoginActivity.this, homePJActivity.class); // MUDANÇA AQUI
+                        startActivity(intent);
+                        finish();
                     } else {
                         // Erro no login
                         Toast.makeText(this, "Erro ao fazer login: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
