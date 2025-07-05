@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.doafacil.MainActivity;
 import com.example.doafacil.R;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -20,7 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText edtEmail, edtSenha;
+    private TextInputEditText edtEmail, edtSenha;
     private Button btnLogin, btnCadastroPF, btnCadastroPJ;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase; // Referência para o banco de dados
@@ -59,18 +60,16 @@ public class LoginActivity extends AppCompatActivity {
         String senha = edtSenha.getText().toString().trim();
 
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(senha)) {
-            Toast.makeText(this, "Preencha todos os campos!", Toast.LENGTH_SHORT).show();
+            Snackbar.make(findViewById(android.R.id.content), "Preencha todos os campos!", Snackbar.LENGTH_SHORT).show();
             return;
         }
 
         mAuth.signInWithEmailAndPassword(email, senha)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show();
-                        // Se o login deu certo, verifica o tipo de usuário
                         checkUserType(task.getResult().getUser().getUid());
                     } else {
-                        Toast.makeText(this, "Erro ao fazer login: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Snackbar.make(findViewById(android.R.id.content), "E-mail e senha incorretos", Snackbar.LENGTH_SHORT).show();
                     }
                 });
     }

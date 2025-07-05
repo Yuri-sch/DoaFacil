@@ -21,6 +21,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class CadastroPJActivity extends AppCompatActivity {
 
@@ -32,10 +34,11 @@ public class CadastroPJActivity extends AppCompatActivity {
     private EditText edtEmail, edtSenha;
     private Button btnAbrirMapa;
     private FragmentContainerView mapPreviewContainer; // Agora é FragmentContainerView
-
+    private LinearProgressIndicator progressIndicator;
     private FirebaseAuth mAuth;
     private GoogleMap mMapPreview;
     private LatLng localSelecionado;
+    private TextInputLayout layoutSenha;
 
     private String nome, telefone, cnpj, descricao;
     private String estado, cidade, rua, numero;
@@ -82,6 +85,8 @@ public class CadastroPJActivity extends AppCompatActivity {
         edtSenha = findViewById(R.id.edtSenha);
         btnAbrirMapa = findViewById(R.id.btnAbrirMapa);
         mapPreviewContainer = findViewById(R.id.mapPreview);
+        progressIndicator = findViewById(R.id.progress_indicator);
+        layoutSenha = findViewById(R.id.layoutSenha);
 
         // Configuração do mapa de preview
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapPreview);
@@ -115,14 +120,30 @@ public class CadastroPJActivity extends AppCompatActivity {
         findViewById(R.id.btnProximo1).setOnClickListener(v -> {
             nome = edtNome.getText().toString().trim();
             telefone = edtTelefone.getText().toString().trim();
-            cnpj = edtCnpj.getText().toString().trim();
+            String cnpjInput = edtCnpj.getText().toString();
             boolean erro = false;
-            if (TextUtils.isEmpty(nome)) { edtNome.setError("Informe o nome"); erro = true; }
-            if (TextUtils.isEmpty(telefone)) { edtTelefone.setError("Informe o telefone"); erro = true; }
-            if (TextUtils.isEmpty(cnpj)) { edtCnpj.setError("Informe o CNPJ"); erro = true; }
+            if (TextUtils.isEmpty(nome)) {
+                edtNome.setError("Informe o nome");
+                erro = true;
+            }
+            if (TextUtils.isEmpty(telefone)) {
+                edtTelefone.setError("Informe o telefone");
+                erro = true;
+            }
+
+            // --- VALIDAÇÃO COMPLETA DO CNPJ ---
+            if (!isCnpjValido(cnpjInput)) {
+                edtCnpj.setError("O CNPJ informado não é válido.");
+                erro = true;
+            }
+
             if (erro) return;
+
+            // Se a validação passou, armazena apenas os números
+            cnpj = cnpjInput.replaceAll("[^0-9]", "");
             step1.setVisibility(View.GONE);
             step2.setVisibility(View.VISIBLE);
+            progressIndicator.setProgress(2, true);
         });
 
         findViewById(R.id.btnProximo2).setOnClickListener(v -> {
@@ -133,6 +154,7 @@ public class CadastroPJActivity extends AppCompatActivity {
             }
             step2.setVisibility(View.GONE);
             step3.setVisibility(View.VISIBLE);
+            progressIndicator.setProgress(3, true);
         });
 
         findViewById(R.id.btnProximo3).setOnClickListener(v -> {
@@ -152,21 +174,25 @@ public class CadastroPJActivity extends AppCompatActivity {
             if (erro) return;
             step3.setVisibility(View.GONE);
             step4.setVisibility(View.VISIBLE);
+            progressIndicator.setProgress(4, true);
         });
 
         findViewById(R.id.btnVoltar1).setOnClickListener(v -> {
             step2.setVisibility(View.GONE);
             step1.setVisibility(View.VISIBLE);
+            progressIndicator.setProgress(1, true);
         });
 
         findViewById(R.id.btnVoltar2).setOnClickListener(v -> {
             step3.setVisibility(View.GONE);
             step2.setVisibility(View.VISIBLE);
+            progressIndicator.setProgress(2, true);
         });
 
         findViewById(R.id.btnVoltar3).setOnClickListener(v -> {
             step4.setVisibility(View.GONE);
             step3.setVisibility(View.VISIBLE);
+            progressIndicator.setProgress(3, true);
         });
 
         // --- CORREÇÃO AQUI ---
@@ -190,8 +216,8 @@ public class CadastroPJActivity extends AppCompatActivity {
                                     .setValue(usuario)
                                     .addOnCompleteListener(taskDb -> {
                                         if (taskDb.isSuccessful()) {
-                                            Toast.makeText(this, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show();
                                             Intent intent = new Intent(CadastroPJActivity.this, LoginActivity.class);
+                                            intent.putExtra("cadastro_sucesso", true);
                                             startActivity(intent);
                                             finish();
                                         } else {
@@ -213,7 +239,7 @@ public class CadastroPJActivity extends AppCompatActivity {
                                 } else if (erroFB.contains("The email address is already in use")) {
                                     edtEmail.setError("Este endereço de e-mail já está em uso");
                                 } else if (erroFB.contains("Password")) {
-                                    edtSenha.setError("A senha deve ter no mínimo 6 caracteres, 1 número, 1 letra maíuscula e 1 letra miníscula");
+                                    layoutSenha.setError("A senha deve ter no mínimo 6 caracteres, 1 número, 1 letra maíuscula e 1 letra miníscula");
                                 } else {
                                     // Para outros erros do Firebase, mostra a mensagem completa
                                     Snackbar.make(findViewById(android.R.id.content), "Erro: " + erroFB, Snackbar.LENGTH_LONG).show();
@@ -225,6 +251,66 @@ public class CadastroPJActivity extends AppCompatActivity {
                         }
                     });
         });
+    }
+
+    public static boolean isCnpjValido(String cnpj) {
+        // Remove caracteres não numéricos
+        cnpj = cnpj.replaceAll("[^0-9]", "");
+
+        // 1. Verifica se o tamanho é 14
+        if (cnpj.length() != 14) {
+            return false;
+        }
+
+        // 2. Verifica se todos os dígitos são iguais (ex: 00.000.000/0000-00), o que é inválido
+        try {
+            Long.parseLong(cnpj);
+            if (cnpj.matches("(\\d)\\1{13}")) {
+                return false;
+            }
+        } catch (NumberFormatException e){
+            // Caso não seja possível converter para Long, também é inválido
+            return false;
+        }
+
+
+        // 3. Cálculo do Primeiro Dígito Verificador
+        int soma = 0;
+        int peso = 2;
+        for (int i = 11; i >= 0; i--) {
+            int num = Integer.parseInt(cnpj.substring(i, i + 1));
+            soma += num * peso;
+            peso++;
+            if (peso == 10) {
+                peso = 2;
+            }
+        }
+
+        int resto = soma % 11;
+        int digitoVerificador1 = (resto < 2) ? 0 : 11 - resto;
+
+        // 4. Verifica o primeiro dígito
+        if (digitoVerificador1 != Integer.parseInt(cnpj.substring(12, 13))) {
+            return false;
+        }
+
+        // 5. Cálculo do Segundo Dígito Verificador
+        soma = 0;
+        peso = 2;
+        for (int i = 12; i >= 0; i--) {
+            int num = Integer.parseInt(cnpj.substring(i, i + 1));
+            soma += num * peso;
+            peso++;
+            if (peso == 10) {
+                peso = 2;
+            }
+        }
+
+        resto = soma % 11;
+        int digitoVerificador2 = (resto < 2) ? 0 : 11 - resto;
+
+        // 6. Verifica o segundo dígito e retorna o resultado final
+        return digitoVerificador2 == Integer.parseInt(cnpj.substring(13, 14));
     }
 }
 

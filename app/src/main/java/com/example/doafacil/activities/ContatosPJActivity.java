@@ -129,7 +129,8 @@ public class ContatosPJActivity extends AppCompatActivity {
                         }
                     }
                     if (keyToRemove != null) {
-                        userRef.child("contatos").child(keyToRemove).removeValue();
+                        userRef.child("contatos").child(keyToRemove).removeValue()
+                                .addOnSuccessListener(aVoid -> Toast.makeText(ContatosPJActivity.this, "Contato removido!", Toast.LENGTH_SHORT).show());
                     }
                 })
                 .setNegativeButton("Não", null)

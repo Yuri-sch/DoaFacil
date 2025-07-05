@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -99,11 +100,12 @@ public class DadosPFActivity extends AppCompatActivity {
 
         userRef.updateChildren(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(DadosPFActivity.this, "Dados atualizados com sucesso!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    // O primeiro argumento é a view onde o Snackbar vai aparecer
+                    Snackbar.make(findViewById(android.R.id.content), "Dados atualizados com sucesso!", Snackbar.LENGTH_LONG).show();
+                    // Adicionamos um pequeno delay para o usuário conseguir ler o snackbar antes da tela fechar
+                    new android.os.Handler().postDelayed(this::finish, 1500); // 1.5 segundos
                 })
-                // LINHA CORRIGIDA ABAIXO
-                .addOnFailureListener(e -> Toast.makeText(DadosPFActivity.this, "Erro ao atualizar dados.", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Snackbar.make(findViewById(android.R.id.content), "Erro ao atualizar dados.", Snackbar.LENGTH_LONG).show());
     }
 
     @Override
