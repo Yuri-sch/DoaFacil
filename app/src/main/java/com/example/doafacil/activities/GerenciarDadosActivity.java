@@ -33,44 +33,51 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.HashMap;
 import java.util.Map;
 
+// Activity para a instituição (PJ) gerenciar seus próprios dados cadastrais.
 public class GerenciarDadosActivity extends AppCompatActivity {
 
-    // Campos de texto
+    // Declaração dos componentes de UI.
     private EditText edtNome, edtCnpj, edtTelefone, edtDescricao;
     private EditText edtEstado, edtCidade, edtRua, edtNumero;
     private Button btnSalvarDados, btnAlterarLocal;
 
-    // Referências do Firebase
+    // Referência do usuário no Firebase.
     private DatabaseReference userRef;
 
-    // Componentes do Mapa
-    private GoogleMap mMapPreview;
-    private FragmentContainerView mapPreviewContainer;
-    private LatLng localSelecionado;
+    // Componentes do Mapa.
+    private GoogleMap mMapPreview; // Objeto do mapa para o preview.
+    private FragmentContainerView mapPreviewContainer; // Container do fragmento do mapa.
+    private LatLng localSelecionado; // Armazena a localização (latitude e longitude).
 
-    // Launcher para a activity de seleção de local
+    // Launcher que aguarda o resultado da activity de seleção de local no mapa.
     private final ActivityResultLauncher<Intent> mapResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
+                // Verifica se a activity retornou um resultado positivo e com dados.
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    // Extrai as coordenadas retornadas.
                     double latitude = result.getData().getDoubleExtra("latitude", 0);
                     double longitude = result.getData().getDoubleExtra("longitude", 0);
+                    // Atualiza a variável com a nova localização.
                     localSelecionado = new LatLng(latitude, longitude);
-                    updateMapPreview();
+                    updateMapPreview(); // Atualiza a visualização do mapa.
                 }
             }
     );
 
+    // Metodo chamado na criação da Activity.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gerenciar_dados);
 
+        // Configuração da Toolbar.
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        // Verifica se o usuário está logado.
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "Usuário não encontrado. Faça login novamente.", Toast.LENGTH_LONG).show();
@@ -78,25 +85,30 @@ public class GerenciarDadosActivity extends AppCompatActivity {
             return;
         }
 
+        // Define a referência para o nó do usuário logado no Firebase.
         userRef = FirebaseDatabase.getInstance().getReference("usuarios").child("pj").child(currentUser.getUid());
 
+        // Inicializa os componentes, o mapa e carrega os dados.
         initViews();
         setupMap();
         loadUserData();
 
+        // Define o listener para o botão de alterar localização.
         btnAlterarLocal.setOnClickListener(v -> {
             Intent intent = new Intent(GerenciarDadosActivity.this, SelecionarLocalActivity.class);
-            // Envia a localização atual para a próxima tela, se ela existir
+            // Se já existe uma localização, a envia para a próxima tela para ser o ponto de partida.
             if (localSelecionado != null) {
                 intent.putExtra("latitude_atual", localSelecionado.latitude);
                 intent.putExtra("longitude_atual", localSelecionado.longitude);
             }
-            mapResultLauncher.launch(intent);
+            mapResultLauncher.launch(intent); // Inicia a activity do mapa.
         });
 
+        // Define o listener para o botão de salvar.
         btnSalvarDados.setOnClickListener(v -> saveUserData());
     }
 
+    // Associa as variáveis de interface aos seus respectivos componentes no XML.
     private void initViews() {
         edtNome = findViewById(R.id.edtNomeInstituicao);
         edtCnpj = findViewById(R.id.edtCnpj);
@@ -111,15 +123,16 @@ public class GerenciarDadosActivity extends AppCompatActivity {
         mapPreviewContainer = findViewById(R.id.mapPreview);
     }
 
+    // Configura o fragmento do mapa de preview.
     private void setupMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapPreview);
         if (mapFragment != null) {
+            // Prepara o mapa de forma assíncrona.
             mapFragment.getMapAsync(googleMap -> {
                 mMapPreview = googleMap;
-                mMapPreview.getUiSettings().setAllGesturesEnabled(false); // Apenas visualização
+                mMapPreview.getUiSettings().setAllGesturesEnabled(false); // Desabilita interações com o mapa de preview.
 
-                // Se os dados do usuário (e a localização) já foram carregados antes do mapa,
-                // atualiza o preview agora.
+                // Se a localização já foi carregada, atualiza o mapa.
                 if (localSelecionado != null) {
                     updateMapPreview();
                 }
@@ -127,13 +140,14 @@ public class GerenciarDadosActivity extends AppCompatActivity {
         }
     }
 
+    // Carrega os dados da instituição do Firebase e preenche os campos.
     private void loadUserData() {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 UsuarioPJ usuario = snapshot.getValue(UsuarioPJ.class);
                 if (usuario != null) {
-                    // ... (preenchimento dos outros campos de texto continua igual)
+                    // Preenche todos os campos de texto com os dados do usuário.
                     edtNome.setText(usuario.getNome());
                     edtCnpj.setText(usuario.getCnpj());
                     edtTelefone.setText(usuario.getTelefone());
@@ -143,11 +157,10 @@ public class GerenciarDadosActivity extends AppCompatActivity {
                     edtRua.setText(usuario.getRua());
                     edtNumero.setText(usuario.getNumero());
 
+                    // Verifica se existem coordenadas de latitude e longitude.
                     if (usuario.getLatitude() != 0 && usuario.getLongitude() != 0) {
                         localSelecionado = new LatLng(usuario.getLatitude(), usuario.getLongitude());
-
                         // Se o mapa já estiver pronto, atualiza o preview.
-                        // Se não, o `setupMap` vai chamar a atualização quando ficar pronto.
                         if (mMapPreview != null) {
                             updateMapPreview();
                         }
@@ -161,21 +174,25 @@ public class GerenciarDadosActivity extends AppCompatActivity {
         });
     }
 
+    // Atualiza a visualização do mapa com a localização selecionada.
     private void updateMapPreview() {
         if (mMapPreview != null && localSelecionado != null) {
-            mapPreviewContainer.setVisibility(View.VISIBLE); // Mostra o mapa
-            mMapPreview.clear();
-            mMapPreview.addMarker(new MarkerOptions().position(localSelecionado).title("Localização Atual"));
-            mMapPreview.moveCamera(CameraUpdateFactory.newLatLngZoom(localSelecionado, 16f));
+            mapPreviewContainer.setVisibility(View.VISIBLE); // Torna o mapa visível.
+            mMapPreview.clear(); // Limpa marcadores antigos.
+            mMapPreview.addMarker(new MarkerOptions().position(localSelecionado).title("Localização Atual")); // Adiciona novo marcador.
+            mMapPreview.moveCamera(CameraUpdateFactory.newLatLngZoom(localSelecionado, 16f)); // Move a câmera para o local.
         }
     }
 
+    // Valida os dados e os salva no Firebase.
     private void saveUserData() {
+        // Validação simples para o campo de nome.
         if (TextUtils.isEmpty(edtNome.getText().toString())) {
             edtNome.setError("O nome é obrigatório");
             return;
         }
 
+        // Cria um mapa para armazenar apenas os dados que serão atualizados.
         Map<String, Object> updates = new HashMap<>();
         updates.put("nome", edtNome.getText().toString().trim());
         updates.put("telefone", edtTelefone.getText().toString().trim());
@@ -185,20 +202,22 @@ public class GerenciarDadosActivity extends AppCompatActivity {
         updates.put("rua", edtRua.getText().toString().trim());
         updates.put("numero", edtNumero.getText().toString().trim());
 
-        // Adiciona a latitude e longitude ao Map para salvar
+        // Adiciona as coordenadas ao mapa de atualização, se existirem.
         if (localSelecionado != null) {
             updates.put("latitude", localSelecionado.latitude);
             updates.put("longitude", localSelecionado.longitude);
         }
 
+        // Executa a operação de atualização no Firebase.
         userRef.updateChildren(updates)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(GerenciarDadosActivity.this, "Dados atualizados com sucesso!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    finish(); // Fecha a activity em caso de sucesso.
                 })
                 .addOnFailureListener(e -> Toast.makeText(GerenciarDadosActivity.this, "Erro ao atualizar dados.", Toast.LENGTH_SHORT).show());
     }
 
+    // Lida com o clique no botão "voltar" da Toolbar.
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();

@@ -24,42 +24,43 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+// Activity principal (tela inicial) para o usuário instituição (Pessoa Jurídica).
 public class homePJActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
-    private DatabaseReference userRef;
+    // Declaração das varáveis do Firebase e da interface.
+    private FirebaseAuth mAuth; // Para gerenciar a autenticação.
+    private DatabaseReference userRef; // Para acessar os dados do usuário no Realtime Database.
+    private Button btnGerenciarObjetos, btnGerenciarDados, btnGerenciarFotos, btnGerenciarContatos; // Botões de navegação.
 
-    private TextView tvBoasVindas;
-    private Button btnGerenciarObjetos, btnGerenciarDados, btnGerenciarFotos, btnGerenciarContatos;
-
+    // Metodo chamado na criação da Activity.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home_pj);
+        setContentView(R.layout.activity_home_pj); // Define o layout da tela.
 
+        // Configura a Toolbar.
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // Inicializa o Firebase Auth e obtém o usuário atual.
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
+        if (currentUser == null) { // Se não houver usuário logado, redireciona para a tela de login.
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
+        // Define a referência para o nó específico do usuário logado.
         userRef = FirebaseDatabase.getInstance().getReference("usuarios").child("pj").child(currentUser.getUid());
 
-        // Associação dos componentes
-        tvBoasVindas = findViewById(R.id.tvBoasVindas);
+        // Associa as variáveis aos componentes do layout.
         btnGerenciarObjetos = findViewById(R.id.btnGerenciarObjetos);
         btnGerenciarDados = findViewById(R.id.btnGerenciarDados);
         btnGerenciarFotos = findViewById(R.id.btnGerenciarFotos);
         btnGerenciarContatos = findViewById(R.id.btnGerenciarContatos);
 
-        loadUserName();
-
-        // Listeners dos botões
+        // Define os listeners de clique para os botões de gerenciamento.
         btnGerenciarObjetos.setOnClickListener(v ->
                 startActivity(new Intent(homePJActivity.this, GerenciarObjetosActivity.class)));
         btnGerenciarDados.setOnClickListener(v ->
@@ -70,67 +71,63 @@ public class homePJActivity extends AppCompatActivity {
                 startActivity(new Intent(homePJActivity.this, ContatosPJActivity.class)));
     }
 
-    private void loadUserName() {
-        // ... (código sem alteração)
-    }
-
+    // Infla o menu de opções na Toolbar.
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.dashboard_menu, menu);
         return true;
     }
 
-    // MÉTODO ATUALIZADO PARA LIDAR COM OS CLIQUES DO MENU
+    // Lida com os cliques nos itens do menu da Toolbar.
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        // Usando if/else if para lidar com múltiplas opções
+        // Lidaa com as diferentes opções do menu.
         if (item.getItemId() == R.id.action_logout) {
-            mAuth.signOut();
-            startActivity(new Intent(this, LoginActivity.class));
+            mAuth.signOut(); // Desloga o usuário.
+            startActivity(new Intent(this, LoginActivity.class)); // Volta para a tela de login.
             finish();
             return true;
         } else if (item.getItemId() == R.id.action_delete_account) {
-            showDeleteAccountDialog(); // Chama o diálogo de confirmação
+            showDeleteAccountDialog(); // Chama o dialog de confirmação.
             return true;
         } else {
             return super.onOptionsItemSelected(item);
         }
     }
 
-    // NOVO: Método para mostrar o diálogo de confirmação
+    // Exibe um dialog de confirmação antes de excluir a conta.
     private void showDeleteAccountDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Excluir Conta")
                 .setMessage("Você tem certeza? Esta ação é irreversível. Todos os seus dados, incluindo objetos e contatos, serão apagados permanentemente.")
-                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setIcon(android.R.drawable.ic_dialog_alert) // Ícone de alerta padrão.
                 .setPositiveButton("Sim, Excluir", (dialog, whichButton) -> deleteUserAccount())
                 .setNegativeButton("Não, Cancelar", null)
                 .show();
     }
 
-    // NOVO: Método que executa a exclusão da conta
+    // Executa a exclusão da conta do usuário.
     private void deleteUserAccount() {
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
+        if (user == null) { // Verificação de segurança.
             Toast.makeText(this, "Erro: usuário não encontrado.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 1. Excluir dados do Realtime Database
+        // Exclui os dados do usuário do Realtime Database.
         userRef.removeValue().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // 2. Se os dados foram excluídos, agora exclui a conta de autenticação
+                // Se os dados foram excluídos, agora exclui a conta de autenticação.
                 user.delete().addOnCompleteListener(authTask -> {
                     if (authTask.isSuccessful()) {
                         Toast.makeText(homePJActivity.this, "Conta excluída com sucesso.", Toast.LENGTH_LONG).show();
-                        // 3. Redireciona para a tela de Login
+                        // Redireciona para a tela de Login e limpa o histórico de telas.
                         Intent intent = new Intent(homePJActivity.this, LoginActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                         finish();
                     } else {
-                        // Isso pode acontecer se o login for muito antigo.
-                        // Uma boa prática seria pedir para o usuário logar novamente.
+                        // Trata o caso em que a autenticação é muito antiga e a exclusão falha.
                         Toast.makeText(homePJActivity.this, "Erro ao excluir conta. Por favor, faça login novamente e tente de novo.", Toast.LENGTH_LONG).show();
                     }
                 });

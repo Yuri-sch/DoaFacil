@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:text="Categoria"
         android:textStyle="bold"
+        android:textColor="@color/black"
         android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
     <TextView
@@ -21,6 +22,7 @@
         android:layout_height="wrap_content"
         android:text="Nome do Objeto"
         android:layout_marginTop="4dp"
+        android:textColor="@color/black"
         android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
     <TextView
@@ -28,6 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Descrição do objeto"
+        android:textColor="@color/black"
         android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
     <LinearLayout

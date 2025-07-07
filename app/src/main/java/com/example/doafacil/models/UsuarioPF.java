@@ -1,21 +1,19 @@
 package com.example.doafacil.models;
 
-/**
- * Modelo de dados para representar um usuário do tipo PF (Pessoa Física).
- * Esses dados serão armazenados no Firebase Realtime Database.
- */
+// Model para usuários PF.
 public class UsuarioPF {
 
-    private String id;       // UID do Firebase Authentication
+    private String id;
     private String nome;
     private String cpf;
     private int idade;
     private String telefone;
 
+    // Construtor vazio exigido pelo Firebase.
     public UsuarioPF() {
-        // Construtor vazio exigido pelo Firebase
     }
 
+    // Construtor principal.
     public UsuarioPF(String id, String nome, String cpf, int idade, String telefone) {
         this.id = id;
         this.nome = nome;
@@ -24,8 +22,7 @@ public class UsuarioPF {
         this.telefone = telefone;
     }
 
-    // Getters e Setters (obrigatórios para Firebase funcionar corretamente)
-
+    // Getters e Setters para permitir o acesso e modificação dos campos da classe.
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

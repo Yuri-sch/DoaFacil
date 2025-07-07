@@ -24,34 +24,38 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
 
+// Activity para o fluxo de cadastro de uma nova instituição (Pessoa Jurídica).
 public class CadastroPJActivity extends AppCompatActivity {
 
-    // (As declarações de variáveis permanecem as mesmas)
+    // Declaração dos componentes.
     private LinearLayout step1, step2, step3, step4;
     private EditText edtNome, edtTelefone, edtCnpj;
     private EditText edtDescricao;
     private EditText edtEstado, edtCidade, edtRua, edtNumero;
     private EditText edtEmail, edtSenha;
     private Button btnAbrirMapa;
-    private FragmentContainerView mapPreviewContainer; // Agora é FragmentContainerView
-    private LinearProgressIndicator progressIndicator;
-    private FirebaseAuth mAuth;
-    private GoogleMap mMapPreview;
-    private LatLng localSelecionado;
-    private TextInputLayout layoutSenha;
+    private FragmentContainerView mapPreviewContainer; // Container para exibir o preview do mapa.
+    private LinearProgressIndicator progressIndicator; // Barra de progresso do formulário.
+    private FirebaseAuth mAuth; // Instância do Firebase Authentication.
+    private GoogleMap mMapPreview; // Objeto do Google Map para o preview.
+    private LatLng localSelecionado; // Armazena as coordenadas do local selecionado no mapa.
+    private TextInputLayout layoutSenha; // Layout especial para o campo de senha.
 
-    private String nome, telefone, cnpj, descricao;
-    private String estado, cidade, rua, numero;
-    private String email, senha;
+    // Variáveis para armazenar os dados inseridos pelo usuário.
+    private String nome, telefone, cnpj, descricao, estado, cidade, rua, numero, email, senha;
 
+    // Prepara o launcher que aguarda o resultado da activity do mapa.
     private final ActivityResultLauncher<Intent> mapResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
+                // Verifica se a activity retornou um resultado OK e se há dados.
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    // Extrai a latitude e longitude retornadas.
                     double latitude = result.getData().getDoubleExtra("latitude", 0);
                     double longitude = result.getData().getDoubleExtra("longitude", 0);
+                    // Cria um novo objeto LatLng com as coordenadas.
                     localSelecionado = new LatLng(latitude, longitude);
-
+                    // Se o mapa de preview já estiver pronto, atualiza-o.
                     if (mMapPreview != null) {
                         updateMapPreview();
                     }
@@ -59,20 +63,19 @@ public class CadastroPJActivity extends AppCompatActivity {
             }
     );
 
+    // Metodo principal, chamado na criação da Activity.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Esta linha irá falhar se o XML estiver incorreto.
         setContentView(R.layout.activity_cadastro_pj);
 
-        mAuth = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance(); // Inicializa o Firebase Auth.
 
-        // Associa as variáveis aos componentes do XML
+        // Associa as variáveis aos componentes do XML.
         step1 = findViewById(R.id.step1);
         step2 = findViewById(R.id.step2);
         step3 = findViewById(R.id.step3);
         step4 = findViewById(R.id.step4);
-
         edtNome = findViewById(R.id.edtNome);
         edtTelefone = findViewById(R.id.edtTelefone);
         edtCnpj = findViewById(R.id.edtCnpj);
@@ -88,70 +91,55 @@ public class CadastroPJActivity extends AppCompatActivity {
         progressIndicator = findViewById(R.id.progress_indicator);
         layoutSenha = findViewById(R.id.layoutSenha);
 
-        // Configuração do mapa de preview
+        // Obtém o fragmento do mapa e o prepara de forma assíncrona.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapPreview);
         if (mapFragment != null) {
             mapFragment.getMapAsync(googleMap -> {
-                mMapPreview = googleMap;
-                mMapPreview.getUiSettings().setAllGesturesEnabled(false);
+                mMapPreview = googleMap; // Atribui o mapa ao nosso objeto.
+                mMapPreview.getUiSettings().setAllGesturesEnabled(false); // Desabilita gestos no preview.
             });
         }
 
-        // Ação do botão para abrir o mapa de seleção
-        // Se `btnAbrirMapa` for nulo aqui, o app irá quebrar.
+        // Listener do botão para abrir a tela de seleção no mapa.
         btnAbrirMapa.setOnClickListener(v -> {
             Intent intent = new Intent(CadastroPJActivity.this, SelecionarLocalActivity.class);
             mapResultLauncher.launch(intent);
         });
 
-        setupNavigationButtons();
+        setupNavigationButtons(); // Configura todos os botões de navegação do formulário.
     }
 
+    // Atualiza o mapa de preview com a localização selecionada.
     private void updateMapPreview(){
         if(mMapPreview != null && localSelecionado != null){
-            mapPreviewContainer.setVisibility(View.VISIBLE);
-            mMapPreview.clear();
-            mMapPreview.addMarker(new MarkerOptions().position(localSelecionado).title("Local Selecionado"));
-            mMapPreview.moveCamera(CameraUpdateFactory.newLatLngZoom(localSelecionado, 16f));
+            mapPreviewContainer.setVisibility(View.VISIBLE); // Torna o container do mapa visível.
+            mMapPreview.clear(); // Limpa marcadores antigos.
+            mMapPreview.addMarker(new MarkerOptions().position(localSelecionado).title("Local Selecionado")); // Adiciona um novo marcador.
+            mMapPreview.moveCamera(CameraUpdateFactory.newLatLngZoom(localSelecionado, 16f)); // Centraliza e aproxima a câmera.
         }
     }
 
+    // Configura os listeners de clique para os botões de avançar e voltar.
     private void setupNavigationButtons(){
         findViewById(R.id.btnProximo1).setOnClickListener(v -> {
             nome = edtNome.getText().toString().trim();
             telefone = edtTelefone.getText().toString().trim();
             String cnpjInput = edtCnpj.getText().toString();
             boolean erro = false;
-            if (TextUtils.isEmpty(nome)) {
-                edtNome.setError("Informe o nome");
-                erro = true;
-            }
-            if (TextUtils.isEmpty(telefone)) {
-                edtTelefone.setError("Informe o telefone");
-                erro = true;
-            }
-
-            // --- VALIDAÇÃO COMPLETA DO CNPJ ---
-            if (!isCnpjValido(cnpjInput)) {
-                edtCnpj.setError("O CNPJ informado não é válido.");
-                erro = true;
-            }
-
+            if (TextUtils.isEmpty(nome)) { edtNome.setError("Informe o nome"); erro = true; }
+            if (TextUtils.isEmpty(telefone)) { edtTelefone.setError("Informe o telefone"); erro = true; }
+            if (!isCnpjValido(cnpjInput)) { edtCnpj.setError("O CNPJ informado não é válido."); erro = true; }
             if (erro) return;
 
-            // Se a validação passou, armazena apenas os números
-            cnpj = cnpjInput.replaceAll("[^0-9]", "");
+            cnpj = cnpjInput.replaceAll("[^0-9]", ""); // Armazena apenas os números do CNPJ.
             step1.setVisibility(View.GONE);
             step2.setVisibility(View.VISIBLE);
-            progressIndicator.setProgress(2, true);
+            progressIndicator.setProgress(2, true); // Avança para a próxima etapa.
         });
 
         findViewById(R.id.btnProximo2).setOnClickListener(v -> {
             descricao = edtDescricao.getText().toString().trim();
-            if (TextUtils.isEmpty(descricao)) {
-                edtDescricao.setError("Informe a descrição");
-                return;
-            }
+            if (TextUtils.isEmpty(descricao)) { edtDescricao.setError("Informe a descrição"); return; }
             step2.setVisibility(View.GONE);
             step3.setVisibility(View.VISIBLE);
             progressIndicator.setProgress(3, true);
@@ -177,6 +165,7 @@ public class CadastroPJActivity extends AppCompatActivity {
             progressIndicator.setProgress(4, true);
         });
 
+        // Configura os botões de "Voltar".
         findViewById(R.id.btnVoltar1).setOnClickListener(v -> {
             step2.setVisibility(View.GONE);
             step1.setVisibility(View.VISIBLE);
@@ -195,7 +184,7 @@ public class CadastroPJActivity extends AppCompatActivity {
             progressIndicator.setProgress(3, true);
         });
 
-        // --- CORREÇÃO AQUI ---
+        // Configura o botão final de cadastro.
         findViewById(R.id.btnCadastrar).setOnClickListener(v -> {
             email = edtEmail.getText().toString().trim();
             senha = edtSenha.getText().toString().trim();
@@ -204,20 +193,19 @@ public class CadastroPJActivity extends AppCompatActivity {
             if (TextUtils.isEmpty(senha)) { edtSenha.setError("Informe a senha"); erro = true; }
             if (erro) return;
 
+            // Cria o usuário no Firebase Authentication com email e senha.
             mAuth.createUserWithEmailAndPassword(email, senha)
                     .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            String uid = mAuth.getCurrentUser().getUid();
+                        if (task.isSuccessful()) { // Se a autenticação for criada com sucesso.
+                            String uid = mAuth.getCurrentUser().getUid(); // Pega o ID único do novo usuário.
+                            // Cria um objeto UsuarioPJ com todos os dados coletados.
                             UsuarioPJ usuario = new UsuarioPJ(uid, nome, cnpj, descricao, telefone, estado, cidade, rua, numero, localSelecionado.latitude, localSelecionado.longitude);
-                            FirebaseDatabase.getInstance().getReference()
-                                    .child("usuarios")
-                                    .child("pj")
-                                    .child(uid)
-                                    .setValue(usuario)
+                            // Salva o objeto do usuário no Realtime Database.
+                            FirebaseDatabase.getInstance().getReference().child("usuarios").child("pj").child(uid).setValue(usuario)
                                     .addOnCompleteListener(taskDb -> {
                                         if (taskDb.isSuccessful()) {
                                             Intent intent = new Intent(CadastroPJActivity.this, LoginActivity.class);
-                                            intent.putExtra("cadastro_sucesso", true);
+                                            intent.putExtra("cadastro_sucesso", true); // Passa um mensagem de succeso para a tela de login.
                                             startActivity(intent);
                                             finish();
                                         } else {
@@ -225,92 +213,46 @@ public class CadastroPJActivity extends AppCompatActivity {
                                         }
                                     });
                         } else {
-                            // LÓGICA DE ERRO RESTAURADA E CORRIGIDA
-                            String erroFB = "";
-                            // Garante que a exceção não é nula antes de pegar a mensagem
-                            if (task.getException() != null) {
-                                erroFB = task.getException().getMessage();
-                            }
-
-                            // Verifica o tipo de erro e mostra a mensagem apropriada
-                            if (erroFB != null) {
-                                if (erroFB.contains("email address is badly formatted")) {
-                                    edtEmail.setError("O formato do e-mail é inválido");
-                                } else if (erroFB.contains("The email address is already in use")) {
-                                    edtEmail.setError("Este endereço de e-mail já está em uso");
-                                } else if (erroFB.contains("Password")) {
-                                    layoutSenha.setError("A senha deve ter no mínimo 6 caracteres, 1 número, 1 letra maíuscula e 1 letra miníscula");
-                                } else {
-                                    // Para outros erros do Firebase, mostra a mensagem completa
-                                    Snackbar.make(findViewById(android.R.id.content), "Erro: " + erroFB, Snackbar.LENGTH_LONG).show();
-                                }
-                            } else {
-                                // Caso o erro seja nulo por algum motivo
-                                Snackbar.make(findViewById(android.R.id.content), "Ocorreu um erro desconhecido no cadastro.", Snackbar.LENGTH_LONG).show();
-                            }
+                            // Lógica para tratar erros do cadastro do login.
+                            String erroFB = task.getException() != null ? task.getException().getMessage() : "Erro desconhecido";
+                            if (erroFB.contains("email address is badly formatted")) { edtEmail.setError("O formato do e-mail é inválido"); }
+                            else if (erroFB.contains("The email address is already in use")) { edtEmail.setError("Este endereço de e-mail já está em uso"); }
+                            else if (erroFB.contains("Password")) { layoutSenha.setError("A senha deve ter no mínimo 6 caracteres, uma número, uma letra maiúscula e uma letra minúscula"); }
+                            else { Snackbar.make(findViewById(android.R.id.content), "Erro: " + erroFB, Snackbar.LENGTH_LONG).show(); }
                         }
                     });
         });
     }
 
+    // Algoritmo para validar um número de CNPJ através dos dígitos verificadores.
     public static boolean isCnpjValido(String cnpj) {
-        // Remove caracteres não numéricos
-        cnpj = cnpj.replaceAll("[^0-9]", "");
+        cnpj = cnpj.replaceAll("[^0-9]", ""); // Remove caracteres não numéricos.
+        if (cnpj.length() != 14) return false; // Verifica se o tamanho é 14.
+        if (cnpj.matches("(\\d)\\1{13}")) return false; // Verifica se todos os dígitos são iguais.
 
-        // 1. Verifica se o tamanho é 14
-        if (cnpj.length() != 14) {
-            return false;
-        }
-
-        // 2. Verifica se todos os dígitos são iguais (ex: 00.000.000/0000-00), o que é inválido
         try {
-            Long.parseLong(cnpj);
-            if (cnpj.matches("(\\d)\\1{13}")) {
-                return false;
+            // Cálculo do primeiro dígito verificador.
+            int soma = 0;
+            int peso = 2;
+            for (int i = 11; i >= 0; i--) {
+                soma += Integer.parseInt(cnpj.substring(i, i + 1)) * peso;
+                peso = (peso == 9) ? 2 : peso + 1;
             }
-        } catch (NumberFormatException e){
-            // Caso não seja possível converter para Long, também é inválido
+            int dv1 = (soma % 11 < 2) ? 0 : 11 - (soma % 11);
+            if (dv1 != Integer.parseInt(cnpj.substring(12, 13))) return false;
+
+            // Cálculo do segundo dígito verificador.
+            soma = 0;
+            peso = 2;
+            for (int i = 12; i >= 0; i--) {
+                soma += Integer.parseInt(cnpj.substring(i, i + 1)) * peso;
+                peso = (peso == 9) ? 2 : peso + 1;
+            }
+            int dv2 = (soma % 11 < 2) ? 0 : 11 - (soma % 11);
+            return dv2 == Integer.parseInt(cnpj.substring(13, 14)); // Retorna true se ambos os dígitos forem válidos.
+        } catch (Exception e) {
             return false;
         }
-
-
-        // 3. Cálculo do Primeiro Dígito Verificador
-        int soma = 0;
-        int peso = 2;
-        for (int i = 11; i >= 0; i--) {
-            int num = Integer.parseInt(cnpj.substring(i, i + 1));
-            soma += num * peso;
-            peso++;
-            if (peso == 10) {
-                peso = 2;
-            }
-        }
-
-        int resto = soma % 11;
-        int digitoVerificador1 = (resto < 2) ? 0 : 11 - resto;
-
-        // 4. Verifica o primeiro dígito
-        if (digitoVerificador1 != Integer.parseInt(cnpj.substring(12, 13))) {
-            return false;
-        }
-
-        // 5. Cálculo do Segundo Dígito Verificador
-        soma = 0;
-        peso = 2;
-        for (int i = 12; i >= 0; i--) {
-            int num = Integer.parseInt(cnpj.substring(i, i + 1));
-            soma += num * peso;
-            peso++;
-            if (peso == 10) {
-                peso = 2;
-            }
-        }
-
-        resto = soma % 11;
-        int digitoVerificador2 = (resto < 2) ? 0 : 11 - resto;
-
-        // 6. Verifica o segundo dígito e retorna o resultado final
-        return digitoVerificador2 == Integer.parseInt(cnpj.substring(13, 14));
     }
 }
 
